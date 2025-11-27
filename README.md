@@ -1,4 +1,4 @@
-#BASIC-52 V1.31 on CH55x
+# BASIC-52 V1.31 on CH55x
 
 CH552X BASIC-52 V1.31 Int OSC 24MHz with I2C and SPI extensions
 
