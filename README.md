@@ -4,9 +4,14 @@ CH552X BASIC-52 V1.31 Int OSC 24MHz with I2C and SPI extensions
 
 **CH552E - MSOP10**
 
-CH552G - SOP16
+**CH552G - SOP16**
 
-_CH552T - 20 PIN_ 
+**CH552T - 20 PIN**
+
+**CH558T -**
+**CH558L -**
+**CH559T -**
+**CH559L -**
 
 Assembled with Atmel C51ASM assembler. All files assembled with Zero warning and error.
 CH552 uses internal oscillator of 24MHz and doesn't require external oscillator or crystal.
