@@ -1,15 +1,15 @@
 $mod51
-CH559T		SET	1		; Chip select, 1=CH559T, 0=CH559L
+CH558T		SET	1		; Chip select, 1=CH558T, 0=CH558L
 ;                                                            Ver.0.63 2023.07.16
 ;                                                            Ver.0.64 2023.11.19
-;
-; WCH CH559T/L 対応バージョン(SFRアクセス,I2C & SPI, ADC入出力機能付)
+;															 Ver.0.65 2025.11.27
+; WCH CH558T/L 対応バージョン(SFRアクセス,I2C & SPI, ADC入出力機能付)
 ;   Internal Clock 12MHz, CPU Clock(Fsys) 48MHz(Default->Extend)
 ;   Timer2 を UART0 のシリアルポート用クロック生成に使用。
 ;   シリアルポートの自動速度認識機能が正常に動かないので19.2Kbps固定で使う。
 ;   SPIは MSB first, Mode-3 に対応。
-;   CH559TはUART0ポートを使用できないので代替UART0ポートを使用(P3.0,P3.1 -> P0.2,P0.3)
-;   ソースのオプションでCH559LとCH559Tを選択 ( 1=CH559T, 0=CH559L )
+;   CH558TはUART0ポートを使用できないので代替UART0ポートを使用(P3.0,P3.1 -> P0.2,P0.3)
+;   ソースのオプションでCH558LとCH558Tを選択 ( 1=CH558T, 0=CH558L )
 ;
 ;   SFR領域のアクセス機能を追加（I2C入出力機能は使用せず）
 ;   I2CSFR  (C) H.-J. Boehling & D. Wulf 14.11.01
@@ -17,7 +17,7 @@ CH559T		SET	1		; Chip select, 1=CH559T, 0=CH559L
 ;     WRSFR ([address]) [byte]      Writes to a special funkton register.
 ;     RDSFR ([address]) [variable]  Reads from a special funkton register.
 ;
-;   2023.05.13 CH552版をCH559用に書き換え
+;   2023.05.13 CH552版をCH558用に書き換え
 ;
 ;   2023.06.12 SPI入出力機能を追加。
 ;   2023.11.19 SPIの同時入出力(rotate)機能を追加
@@ -46,7 +46,7 @@ CH559T		SET	1		; Chip select, 1=CH559T, 0=CH559L
 ;     ADCGET   [variable]  get "valiable" from ADC [0-2047]
 ;     ADCSTOP              close ADC function and analog port
 ;
-;   2023.07.01 CH559Tに対応、パルス生成コマンドを追加（テスト用）
+;   2023.07.01 CH558Tに対応、パルス生成コマンドを追加（テスト用）
 ;
 ;     PULSE [loop-number]  generate pulse, output port is P1.7(SCL)
 ;                          pulse generation ends when port P1.6(SDA) turns off
@@ -241,12 +241,12 @@ T2CON	EQU	0C8H ; This three lines are necessary for MS-DOS freeware
 TL2	EQU	0CCH ; MCS-51 Family Cross Assembler  ASEM-51 V1.2
 TH2	EQU	0CDH ; from W.W. Heinz (e-mail: ww@andiunx.m.isar.de)
 ;
-;=== CH559 sfrs Added =====
+;=== CH558 sfrs Added =====
 T2MOD		EQU	0C9H	; T2MOD define
 PLL_CFG		EQU	0B2H	; PLL clock configuration register
 CLOCK_CFG	EQU	0B3H	; System clock configuration register
 SAFE_MOD	EQU	0A1H	; Safe mode control register
-;=== CH559T sfrs Added =====
+;=== CH558T sfrs Added =====
 PIN_FUNC	EQU	0CEH	; Pin function select register
 P0_DIR		EQU	0C4H	; P0 direction control register
 P0_PU		EQU	0C5H	; P0 pull-up enable register
@@ -1275,7 +1275,7 @@ CRST:	; This performs system initialzation, it was moved here so the
 ;	DB	0C8H		;T2CON LOCATION
 ;	DB	34H		;CONFIGURATION BYTE
 ;
-;=== CH559 Added =====
+;=== CH558 Added =====
 	acall	setfsys	; Set CPU Clock 48MHz
 ;=====================
 ;
@@ -1347,7 +1347,7 @@ CR0:	MOV	R3,DPH		;SAVE THE DPTR
 ;
 ;	CJNE	R3,#0E0H,CR0
 ;
-;=== CH552/CH559 Replaced =====
+;=== CH552/CH558 Replaced =====
 ;	CJNE	R3,#HIGH ROMADR-1,CR0	;Stop the test at 8000H because
 ;	CJNE	R1,#LOW ROMADR-2,CR0	;EEPROM starts here
 ;
@@ -1471,16 +1471,16 @@ CR20:	JNC	BG1		;CHECK FOR 0,1,2,3, OR 4
 ;		db	0DCH	; RCAP2H,L = FFDCH (19.2Kbps, X'TAL 22.1184MHz, 8051-Mode or 11.0592MHz, Fast-Mode)
 ;		db	00h	; Table End
 
-;-- CH559 Insert Start ---------------------------------------------------------
+;-- CH558 Insert Start ---------------------------------------------------------
 ;===============================================================================
-;  CH559 Set Fixed baudrate 19.23Kbps
+;  CH558 Set Fixed baudrate 19.23Kbps
 ;  RCAP2H,L = 65536 - (Fsys/16/Baud Rate) : When Fsys = 48MHz, bTMR_CLK=1,bT2_CLK=1
 ;===============================================================================
 baud19K	equ	0ff64h		; RCAP2H,L Value of 19.23Kbps (FF64H = 65,380)
 ;
 BG1:
-;=== CH559T alternative UART0 port setting =====
-  IF (CH559T) 			; if CH559T = true Then
+;=== CH558T alternative UART0 port setting =====
+  IF (CH558T) 			; if CH558T = true Then
 	orl		P0_DIR,#08h		; P0.3(TXD_) is output
 	orl		P0_PU,#0Ch		; P0.2(RXD_),P0.3(TXD_) pins pull-up resistor enable
 	orl		PIN_FUNC,#10h	; UART0 mapping enable (P3.0,P3.1 -> P0.2,P0.3)
@@ -1495,7 +1495,7 @@ BG1:
 	sjmp	BG3
 
 ;===============================================================================
-;  CH559 System Clock (Fsys) Up 12MHz -> 48MHz
+;  CH558 System Clock (Fsys) Up 12MHz -> 48MHz
 ;===============================================================================
 ;   PLL_CFG is Default = 12MHz x 24 = 288MHz
 ;
@@ -8152,12 +8152,12 @@ TM_TOP: DS	1
 ;****************************************************************************
 
 ;----- Definitions ----------------------------------------------------------
-; === CH559L ===
+; === CH558L ===
 ;SDA		bit	P1.6                    ;I2C serial data line.
 ;SCL		bit	P1.5                    ;I2C serial clock line.
 SDA		bit	P1.6                    ;I2C serial data line.
 SCL		bit	P1.7                    ;I2C serial clock line.
-; == CH559L end ===
+; == CH558L end ===
 
 status		equ	018H			;Communication status.
 
@@ -8172,24 +8172,24 @@ status		equ	018H			;Communication status.
 ;nack		equ	00001000B		;Slave sends no acknowledge.
 
 ; --- SPI command ---
-; CH552/CH559 sfrs
+; CH552/CH558 sfrs
 P1_MOD_OC	EQU	092H	; CH552
 P1_DIR_PU	EQU	093H	; CH552
-PORT_CFG	EQU	0C6H	; CH559
-P1_DIR		EQU	0BAH	; CH559
-P1_PU		EQU	0BBH	; CH559
-SPI0_STAT	EQU	0F8H	; CH552/CH559
-SPI0_DATA	EQU	0F9H	; CH552/CH559
-SPI0_CTRL	EQU	0FAH	; CH552/CH559
-SPI0_CK_SE	EQU	0FBH	; CH552/CH559
-SPI0_SETUP	EQU	0FCH	; CH552/CH559
+PORT_CFG	EQU	0C6H	; CH558
+P1_DIR		EQU	0BAH	; CH558
+P1_PU		EQU	0BBH	; CH558
+SPI0_STAT	EQU	0F8H	; CH552/CH558
+SPI0_DATA	EQU	0F9H	; CH552/CH558
+SPI0_CTRL	EQU	0FAH	; CH552/CH558
+SPI0_CK_SE	EQU	0FBH	; CH552/CH558
+SPI0_SETUP	EQU	0FCH	; CH552/CH558
 
 S0_FREE		EQU	0FBH
 
-SCS		BIT	P1.4	; CH552/CH559 CS(SS)
-MOSI	BIT	P1.5	; CH552/CH559
-MISO	BIT	P1.6	; CH552/CH559
-SCK		BIT P1.7	; CH552/CH559
+SCS		BIT	P1.4	; CH552/CH558 CS(SS)
+MOSI	BIT	P1.5	; CH552/CH558
+MISO	BIT	P1.6	; CH552/CH558
+SCK		BIT P1.7	; CH552/CH558
 ; --- SPI command end ---
 
 ;--- ADC command ---
@@ -8340,8 +8340,8 @@ SpiS00:	jc		SpiSERR			;  goto error routine
 		mov		A,R1		; Load speed
 
 ;	setup SPI interface
-		mov	PORT_CFG,#00101101B		; P1 driver current is 10mA & Push-Pull [CH559]
-		orl	P1_DIR,#10110000B		; SCK,MOSI,SCS output, MISO input [CH559]
+		mov	PORT_CFG,#00101101B		; P1 driver current is 10mA & Push-Pull [CH558]
+		orl	P1_DIR,#10110000B		; SCK,MOSI,SCS output, MISO input [CH558]
 		mov	SPI0_SETUP,#00000000B	; SPI master mode, MSB first
 		mov	SPI0_CTRL,#01101000B	; MOSI,SCK output, Mode-3, 3-wire full duplex (SCK+MOSI+MISO)
 		mov	SPI0_CK_SE,A			; set system-clock division facter
@@ -8473,10 +8473,10 @@ spiemsg4:	db	'ERROR: BAD SPICS ARGUMENT'
 
 i2cstart:
 
-;	setup CH559L I2C port
-		mov	PORT_CFG,#00001111B		; Set defalt, P1 driver current is 5mA & Open-drain output [CH559]
-		anl	P1_DIR,#00111111B		; Set P1 port, SDA & SCL port input/output mode [CH559]
-		anl	P1_PU,#00111111B		; Set P1 port, SDA & SCL port pull-up resistor disable [CH559]
+;	setup CH558L I2C port
+		mov	PORT_CFG,#00001111B		; Set defalt, P1 driver current is 5mA & Open-drain output [CH558]
+		anl	P1_DIR,#00111111B		; Set P1 port, SDA & SCL port input/output mode [CH558]
+		anl	P1_PU,#00111111B		; Set P1 port, SDA & SCL port pull-up resistor disable [CH558]
 
 		setb	sda	
 		setb	scl
@@ -8752,7 +8752,7 @@ PULSE:
 		mov	A,#1				;
 		lcall	30H				; to R3:R1
 
-		mov	PORT_CFG,#00101101B		; P1 driver current is 10mA & Push-Pull [CH559]
+		mov	PORT_CFG,#00101101B		; P1 driver current is 10mA & Push-Pull [CH558]
 		orl	P1_DIR,#10000000B		; P1.7(SCL) output
 		orl	P1_PU,#01000000B		; P1.6(SDA) pullup input
 		nop						; dummy, to adjust the instruction address to be an even number
@@ -9268,5 +9268,6 @@ sfrgettab:	mov	A,128
 ;----------------------------------------------------------------------------
 
 		end
+
 
 
